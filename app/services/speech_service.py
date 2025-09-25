@@ -1,12 +1,12 @@
 import os
-import ffmpeg
+# import ffmpeg  # Remove this line
+from pydub import AudioSegment  # Add this instead
 from google.cloud import speech_v2
 from google.cloud import translate
 from gtts import gTTS
 import tempfile
 from werkzeug.utils import secure_filename
 import io
-from pydub import AudioSegment
 
 class SpeechService:
     def __init__(self, config):
@@ -34,56 +34,68 @@ class SpeechService:
         return language_map.get(frontend_language, "en-IN")
         
     def process_audio_file(self, audio_file_path):
-        """Process uploaded audio file and convert to required format"""
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
-            processed_file = temp_file.name
-        
-        # Convert to 16kHz mono WAV
-        ffmpeg.input(audio_file_path).output(
-            processed_file, 
-            ac=1, 
-            ar=16000
-        ).overwrite_output().run()
-        
-        return processed_file
+        """Process uploaded audio file using pydub instead of ffmpeg"""
+        try:
+            print(f"Processing audio file: {audio_file_path}")
+            
+            # Load audio file with pydub
+            audio = AudioSegment.from_file(audio_file_path)
+            
+            # Convert to mono, 16kHz (required for Google Speech)
+            audio = audio.set_channels(1)  # Mono
+            audio = audio.set_frame_rate(16000)  # 16kHz sample rate
+            
+            # Create temporary file for processed audio
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+                processed_file = temp_file.name
+            
+            # Export as WAV
+            audio.export(processed_file, format="wav")
+            print(f"Audio processed and saved to: {processed_file}")
+            
+            return processed_file
+            
+        except Exception as e:
+            print(f"Audio processing error: {e}")
+            raise e
     
     def transcribe_audio(self, processed_file_path, preferred_language_name=None):
         """Transcribe audio with preferred language using Speech v2 API"""
-        with open(processed_file_path, "rb") as f:
-            content = f.read()
-        
-        # Initialize client with US regional endpoint
-        client_options = {"api_endpoint": "us-speech.googleapis.com"}
-        client = speech_v2.SpeechClient(client_options=client_options)
-        
-        # Get preferred language code
-        if preferred_language_name:
-            primary_lang = self.get_language_code(preferred_language_name)
-        else:
-            primary_lang = "en-IN"  # Default
-            
-        # All available languages
-        all_langs = ["ml-IN", "hi-IN", "en-IN", "ta-IN", "te-IN", 
-                    "mr-IN", "gu-IN", "kn-IN", "pa-IN", "bn-IN", "or-IN"]
-        
-        # Put preferred language first, others as alternatives
-        language_codes = [primary_lang] + [lang for lang in all_langs if lang != primary_lang]
-        
-        # Configuration for automatic language detection
-        config = speech_v2.RecognitionConfig(
-            auto_decoding_config=speech_v2.AutoDetectDecodingConfig(),
-            language_codes=language_codes[:3],  # Use top 3 for better performance
-            model="latest_long",
-        )
-        
-        # Create request with US multi-region
-        request = speech_v2.RecognizeRequest(
-            recognizer=f"projects/{self.project_id}/locations/us/recognizers/_",
-            config=config,
-            content=content,
-        )
-        
         try:
+            with open(processed_file_path, "rb") as f:
+                content = f.read()
+            
+            # Initialize client with US regional endpoint
+            client_options = {"api_endpoint": "us-speech.googleapis.com"}
+            client = speech_v2.SpeechClient(client_options=client_options)
+            
+            # Get preferred language code
+            if preferred_language_name:
+                primary_lang = self.get_language_code(preferred_language_name)
+            else:
+                primary_lang = "en-IN"  # Default
+                
+            # All available languages
+            all_langs = ["ml-IN", "hi-IN", "en-IN", "ta-IN", "te-IN", 
+                        "mr-IN", "gu-IN", "kn-IN", "pa-IN", "bn-IN", "or-IN"]
+            
+            # Put preferred language first, others as alternatives
+            language_codes = [primary_lang] + [lang for lang in all_langs if lang != primary_lang]
+            
+            # Configuration for automatic language detection
+            config = speech_v2.RecognitionConfig(
+                auto_decoding_config=speech_v2.AutoDetectDecodingConfig(),
+                language_codes=language_codes[:3],  # Use top 3 for better performance
+                model="latest_long",
+            )
+            
+            # Create request with US multi-region
+            request = speech_v2.RecognizeRequest(
+                recognizer=f"projects/{self.project_id}/locations/us/recognizers/_",
+                config=config,
+                content=content,
+            )
+            
             # Recognize speech
             response = client.recognize(request=request)
             
@@ -105,18 +117,16 @@ class SpeechService:
             return transcribed_text, detected_language
             
         except Exception as e:
-            print(f"Speech v2 transcription error: {e}")
-            return "", primary_lang
+            print(f"Speech transcription error: {e}")
+            return "", primary_lang if preferred_language_name else "en-IN"
 
     def translate_to_english(self, text, source_language):
-        """Translate text to English with proper language code handling"""
+        """Translate text to English"""
         if not text or not text.strip():
             return text
         
-        # Extract base language code (remove country part)
         source_lang = source_language.lower().split('-')[0]
         
-        # Skip translation if already English
         if source_lang in ["en", "eng", "english"]:
             return text
             
@@ -134,17 +144,15 @@ class SpeechService:
             
         except Exception as e:
             print(f"Translation error (source: {source_lang} -> en): {e}")
-            return text  # Fallback to original text
+            return text
 
     def translate_from_english(self, text, target_language):
-        """Translate English text back to target language with proper handling"""
+        """Translate English text back to target language"""
         if not text or not text.strip():
             return text
         
-        # Extract base language code
         target_lang = target_language.lower().split('-')[0]
         
-        # Skip translation if target is English
         if target_lang in ["en", "eng", "english"]:
             return text
             
@@ -162,7 +170,7 @@ class SpeechService:
             
         except Exception as e:
             print(f"Translation error (en -> {target_lang}): {e}")
-            return text  # Fallback to original text
+            return text
     
     def text_to_speech(self, text, language_code):
         """Convert text to speech audio file"""
@@ -184,6 +192,7 @@ class SpeechService:
                 wav_file = temp_file.name
             
             audio.export(wav_file, format="wav")
+            print(f"TTS audio saved: {wav_file}")
             return wav_file
             
         except Exception as e:
