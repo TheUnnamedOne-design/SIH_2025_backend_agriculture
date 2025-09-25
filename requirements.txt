@@ -1,0 +1,9 @@
+flask
+dotenv
+adobe
+pdfservices-sdk
+rasterio
+geopy
+faiss-cpu
+sentence-transformers
+together

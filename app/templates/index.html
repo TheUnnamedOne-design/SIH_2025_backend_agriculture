@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section bg-gradient-success text-white py-5 mb-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-seedling me-3"></i>
+            Smart Farming Assistant
+        </h1>
+        <p class="lead">Get AI-powered agricultural advice tailored to your location and soil conditions</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Query Form Card -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Ask Your Agricultural Question
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="queryForm">
+                        <div class="mb-4">
+                            <label for="query" class="form-label fw-bold">
+                                <i class="fas fa-comment-alt me-1"></i>
+                                Your Question:
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                                <textarea class="form-control form-control-lg" id="query" rows="3" 
+                                         placeholder="e.g., What crops should I plant for the upcoming season?" required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="district" class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    District:
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                    <input type="text" class="form-control" id="district" 
+                                           placeholder="e.g., Ernakulam" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="state" class="form-label fw-bold">
+                                    <i class="fas fa-flag me-1"></i>
+                                    State:
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                    <input type="text" class="form-control" id="state" 
+                                           placeholder="e.g., Kerala" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label for="choice" class="form-label fw-bold">
+                                    <i class="fas fa-tags me-1"></i>
+                                    Query Type:
+                                </label>
+                                <select class="form-select form-select-lg" id="choice" required>
+                                    <option value="">Select query type...</option>
+                                    <option value="1">
+                                        <i class="fas fa-leaf"></i> General Farming Advice
+                                    </option>
+                                    <option value="2">
+                                        <i class="fas fa-bug"></i> Pesticide Recommendation
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="cropField" style="display: none;">
+                                <label for="current_crop" class="form-label fw-bold">
+                                    <i class="fas fa-wheat-awn me-1"></i>
+                                    Current Crop:
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-leaf"></i></span>
+                                    <input type="text" class="form-control" id="current_crop" 
+                                           placeholder="e.g., Rice">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn">
+                                <span class="loading spinner-border spinner-border-sm me-2" role="status" style="display: none;"></span>
+                                <i class="fas fa-search me-2" id="searchIcon"></i>
+                                Get AI Advice
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            AI Recommendation
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="answer" class="alert alert-info border-0 shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-robot fa-2x me-3 text-primary"></i>
+                                <div id="answerText"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-pin me-2"></i>
+                            Location Context Used
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="context" class="alert alert-light border small">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="contextText"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-lg border-0">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-database me-2"></i>
+                            Knowledge Sources Referenced
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="chunks"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Why Use Our AI Assistant?</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fas fa-map-marked-alt fa-3x text-success mb-3"></i>
+                    <h5>Location-Specific</h5>
+                    <p>Get advice tailored to your exact soil conditions and climate</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                    <h5>AI-Powered</h5>
+                    <p>Advanced AI analyzes agricultural data to provide smart recommendations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h5>Real-Time</h5>
+                    <p>Get instant answers to your farming questions anytime, anywhere</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/query.js') }}"></script>
+{% endblock %}
