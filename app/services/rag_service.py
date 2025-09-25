@@ -81,7 +81,7 @@ class RAGService:
     
 
 
-    def retrieve(self, query: str, context_data: str, k: int = None) -> List[Tuple[str, str, float]]:
+    def retrieve(self, query: str, context_data: str, k: int = 4) -> List[Tuple[str, str, float]]:
         """Retrieve relevant chunks"""
         if k is None:
             k = self.top_k
@@ -131,6 +131,7 @@ class RAGService:
 
     def rag_answer(self, query: str, context_data: str, choice: int) -> str:
         """Complete RAG pipeline"""
+        print(context_data)
         retrieved = self.retrieve(query, context_data)
         prompt = self.build_prompt(query, retrieved, context_data)
         answer = self.generate_answer(prompt, choice)

@@ -77,7 +77,7 @@ class SoilService:
 
         # Get complete soil profile
         soil_profile = self.get_complete_soil_profile(base_directory, latitude, longitude)
-        soil_data_str += f"Complete Soil Profile at location: {latitude}, {longitude}\n"
+        soil_data_str += f"Complete Soil Profile at location:{district_name}\n"
 
         for category, values in soil_profile.items():
             soil_data_str += f"\n{category}: "

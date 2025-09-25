@@ -63,7 +63,7 @@ def process_query():
             the current crop being grown is {current_crop}.
             '''
         
-        print(context_data)
+        
 
         # Check if index exists
         if rag_service.index is None:
