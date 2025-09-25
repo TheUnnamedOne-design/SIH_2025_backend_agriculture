@@ -1,11 +1,15 @@
 from flask import Flask
 from app.extensions import init_extensions
 from app.config import Config
+from flask_cors import CORS
 
 def create_app(config_class=Config):
-    # Explicitly set template folder
+    # Create Flask app (only once)
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(config_class)
+    
+    # Add CORS to accept all origins
+    CORS(app, origins="*")
     
     # Initialize extensions
     init_extensions(app)

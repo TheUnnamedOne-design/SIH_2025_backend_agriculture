@@ -13,3 +13,4 @@ google-cloud-translate
 gtts
 ffmpeg-python
 pydub
+flask-cors
