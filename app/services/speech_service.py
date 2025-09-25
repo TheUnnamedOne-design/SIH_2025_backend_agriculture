@@ -1,6 +1,6 @@
 import os
 import ffmpeg
-from google.cloud import speech
+from google.cloud import speech_v2
 from google.cloud import translate
 from gtts import gTTS
 import tempfile
@@ -11,14 +11,15 @@ from pydub import AudioSegment
 class SpeechService:
     def __init__(self, config):
         self.project_id = config['GOOGLE_PROJECT_ID']
-        self.speech_client = speech.SpeechClient()
+        self.speech_client = speech_v2.SpeechClient()  # Fixed: use speech_v2
         self.translate_client = translate.TranslationServiceClient()
         self.location = "global"
         self.parent = f"projects/{self.project_id}/locations/{self.location}"
         
     def process_audio_file(self, audio_file_path):
         """Process uploaded audio file and convert to required format"""
-        processed_file = tempfile.mktemp(suffix='.wav')
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
+            processed_file = temp_file.name  # Fixed: use secure temp file
         
         # Convert to 16kHz mono WAV
         ffmpeg.input(audio_file_path).output(
@@ -30,33 +31,55 @@ class SpeechService:
         return processed_file
     
     def transcribe_audio(self, processed_file_path):
-        """Transcribe audio to text with language detection"""
+        """Transcribe audio using Speech v2 API with 3 languages"""
         with open(processed_file_path, "rb") as f:
             content = f.read()
         
-        audio = speech.RecognitionAudio(content=content)
+        # Initialize client with US regional endpoint
+        client_options = {"api_endpoint": "us-speech.googleapis.com"}
+        client = speech_v2.SpeechClient(client_options=client_options)
         
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=16000,
-            enable_automatic_punctuation=True,
-            language_code="ml",  # Default: Malayalam
-            alternative_language_codes=[
-                "en", "hi", "bn", "mr", "te", "ta", "gu", "kn", "pa", "or"
+        # Configuration for automatic language detection
+        config = speech_v2.RecognitionConfig(
+            auto_decoding_config=speech_v2.AutoDetectDecodingConfig(),
+            language_codes=[
+                "ml-IN",  # Malayalam
+                "ta-IN",  # Hindi  
+                "en-IN",  # English (India)
             ],
+            model="latest_long",
         )
         
-        response = self.speech_client.recognize(config=config, audio=audio)
+        # Create request with US multi-region
+        request = speech_v2.RecognizeRequest(
+            recognizer=f"projects/{self.project_id}/locations/us/recognizers/_",
+            config=config,
+            content=content,
+        )
         
-        transcribed_text = ""
-        detected_language = "en"  # Default to English
-        
-        for result in response.results:
-            transcribed_text += result.alternatives[0].transcript
-            if hasattr(result, "language_code"):
-                detected_language = result.language_code
-        
-        return transcribed_text, detected_language
+        try:
+            # Recognize speech
+            response = client.recognize(request=request)
+            
+            # Extract transcript and detected language
+            transcribed_text = ""
+            detected_language = "unknown"
+            
+            for result in response.results:
+                transcribed_text += result.alternatives[0].transcript
+                if hasattr(result, 'language_code'):
+                    detected_language = result.language_code
+            
+            print("Detected language:", detected_language)
+            print("Transcript:", transcribed_text)
+            
+            return transcribed_text, detected_language
+            
+        except Exception as e:
+            print(f"Speech v2 transcription error: {e}")
+            return "", "en-IN"
+
+
     
 
     def translate_to_english(self, text, source_language):

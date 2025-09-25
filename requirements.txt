@@ -8,6 +8,7 @@ faiss-cpu
 sentence-transformers
 together
 google-cloud-speech
+google-cloud-speech[v2]
 google-cloud-translate
 gtts
 ffmpeg-python
