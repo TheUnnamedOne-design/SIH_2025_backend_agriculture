@@ -13,9 +13,11 @@ def create_app(config_class=Config):
     # Register blueprints
     from app.routes.main import main_bp
     from app.routes.api import api_bp
+    from app.routes.speech import speech_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(speech_bp, url_prefix='/speech')
     
     # Initialize RAG service at app startup
     print("Initializing RAG service at startup...")

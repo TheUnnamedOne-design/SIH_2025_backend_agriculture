@@ -7,3 +7,8 @@ geopy
 faiss-cpu
 sentence-transformers
 together
+google-cloud-speech
+google-cloud-translate
+gtts
+ffmpeg-python
+pydub

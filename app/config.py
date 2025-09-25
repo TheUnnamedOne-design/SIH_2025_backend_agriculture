@@ -27,3 +27,11 @@ class Config:
     TOGETHER_MODEL = os.environ.get('TOGETHER_MODEL', 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free')
     MAX_CHARS_PER_CHUNK = int(os.environ.get('MAX_CHARS_PER_CHUNK', '1200'))
     TOP_K = int(os.environ.get('TOP_K', '4'))
+
+
+    GOOGLE_PROJECT_ID = os.environ.get('GOOGLE_PROJECT_ID', 'sihserver-473213')
+    GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+    
+    # Audio processing
+    MAX_AUDIO_FILE_SIZE = 16 * 1024 * 1024  # 16MB
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'temp_uploads')
