@@ -29,16 +29,27 @@ class RAGService:
                 meta = pickle.load(f)
             self.chunks = meta["chunks"]
             self.chunk_ids = meta["chunk_ids"]
+            print(f"Loaded {len(self.chunks)} chunks from metadata")  # This shows the length
+            print(f"Sample chunk IDs: {self.chunk_ids[:5]}")
+            if self.chunks:
+                print(f"First chunk preview: {self.chunks[0][:100]}...")
         else:
             self.chunks = []
             self.chunk_ids = []
+            print("No metadata file found - starting with empty chunks")
+            print(f"Chunks count: {len(self.chunks)}")  # Will show 0
 
         if os.path.exists(self.index_path):
             self.index = faiss.read_index(self.index_path)
+            print(f"FAISS index loaded with {self.index.ntotal} vectors")
         else:
             self.index = None
+            print("No FAISS index file found - starting fresh")
         
-        print("Index loaded")
+        print(f"Total chunks loaded: {len(self.chunks)}")  # Final count
+        print("Index loading complete!")
+
+
 
         
 
