@@ -36,7 +36,7 @@ def create_app(config_class=Config):
     
     # Initialize RAG service
     print("Initializing RAG service...")
-    from app.services.rag_service import RAGService
+    from app.services.google_rag_service import ImprovedGoogleRAGService as RAGService
     app.rag_service = RAGService(app.config)
     print("RAG service initialization complete!")
     
