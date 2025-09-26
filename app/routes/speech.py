@@ -163,11 +163,11 @@ def process_voice_query_json():
     temp_input = None
     processed_file = None
     audio_response_file = None
-    
+    print("Entering")
     try:
         # Check if audio file is present
         if 'audio' not in request.files:
-            return jsonify({'error': 'No audio file provided'}), 400
+            return jsonify({'error': 'No audio file provided'}), 401
         
         file = request.files['audio']
         if file.filename == '' or not allowed_file(file.filename):
@@ -179,6 +179,11 @@ def process_voice_query_json():
         choice = int(request.form.get('choice', 1))
         current_crop = request.form.get('current_crop', '')
         preferred_language = request.form.get('preferred_language', 'English')
+
+        print("Checking")
+
+
+        print(f'{district_name} {state} {preferred_language}')
         
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_file:
