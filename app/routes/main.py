@@ -19,6 +19,16 @@ def test():
 def simple():
     return render_template('simple.html')
 
+@main_bp.route('/health')
+def health():
+    """Simple health check endpoint"""
+    return jsonify({
+        'status': 'ok',
+        'message': 'Server is running'
+    })
+
+
+
 @main_bp.route('/query', methods=['POST'])
 def process_query():
     try:
@@ -62,8 +72,6 @@ def process_query():
             with an altitude of {elevation},
             the current crop being grown is {current_crop}.
             '''
-        
-        
 
         # Check if index exists
         if rag_service.index is None:
@@ -85,3 +93,7 @@ def process_query():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+
+
