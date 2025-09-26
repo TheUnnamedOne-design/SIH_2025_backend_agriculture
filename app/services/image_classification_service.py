@@ -41,7 +41,7 @@ class ImageClassificationService:
             # Reconstruct model (exactly as in your original code)
             num_classes = len(checkpoint["class_to_idx"])
             self.model = timm.create_model("convnext_tiny", pretrained=False, num_classes=num_classes)
-            self.model.load_state_dict(checkpoint["model_state_dict"])
+            self.model.load_state_dict(checkpoint["model_state"])
             self.model.to(self.device)
             self.model.eval()
             
