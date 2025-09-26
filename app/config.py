@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+
 class Config:
     # Flask Configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
@@ -35,3 +37,9 @@ class Config:
     # Audio processing
     MAX_AUDIO_FILE_SIZE = 16 * 1024 * 1024  # 16MB
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'temp_uploads')
+
+    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') or 'your-google-api-key-here'
+    GOOGLE_MODEL = 'gemini-2.5-flash'
+    CONTEXT_WINDOW = 5
+
+    IMAGE_MODEL_PATH = os.environ.get('IMAGE_MODEL_PATH', 'models/convnext_tiny_checkpoint.pth')

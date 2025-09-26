@@ -14,3 +14,8 @@ gtts
 ffmpeg-python
 pydub
 flask-cors
+google-generativeai
+torch
+torchvision
+timm
+Pillow
